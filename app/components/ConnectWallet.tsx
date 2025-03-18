@@ -2,16 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { initializeProvider } from '../utils/contracts';
-
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      on: (eventName: string, handler: (params: any) => void) => void;
-      removeListener: (eventName: string, handler: (params: any) => void) => void;
-    };
-  }
-}
+import type { EthereumProvider } from '../types/ethereum';
 
 export default function ConnectWallet() {
   const [address, setAddress] = useState<string | null>(null);
@@ -35,15 +26,15 @@ export default function ConnectWallet() {
     // Check if already connected
     if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' })
-        .then((accounts: string[]) => {
-          if (accounts.length > 0) {
+        .then((accounts: unknown) => {
+          if (Array.isArray(accounts) && accounts.length > 0 && typeof accounts[0] === 'string') {
             setAddress(accounts[0]);
           }
         });
 
       // Listen for account changes
-      const handleAccountsChanged = (accounts: string[]) => {
-        if (accounts.length > 0) {
+      const handleAccountsChanged = (accounts: unknown) => {
+        if (Array.isArray(accounts) && accounts.length > 0 && typeof accounts[0] === 'string') {
           setAddress(accounts[0]);
         } else {
           setAddress(null);
@@ -66,7 +57,7 @@ export default function ConnectWallet() {
     try {
       await initializeProvider();
       const accounts = await window.ethereum?.request({ method: 'eth_requestAccounts' });
-      if (accounts && accounts.length > 0) {
+      if (Array.isArray(accounts) && accounts.length > 0 && typeof accounts[0] === 'string') {
         setAddress(accounts[0]);
       }
     } catch (error) {
