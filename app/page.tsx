@@ -1,74 +1,76 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import RandomNumber from './components/RandomNumber';
 import RandomList from './components/RandomList';
+import YoloRoll from './components/YoloRoll';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'number' | 'list'>('number');
+  const [activeTab, setActiveTab] = useState('number');
+  const [showYolo, setShowYolo] = useState(false);
 
   return (
-    <main className="min-h-screen bg-black text-white overflow-x-hidden">
+    <main className="min-h-screen bg-black overflow-x-hidden relative">
       {/* Animated background */}
-      <div className="fixed inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#9d00ff_0%,rgba(0,0,0,0)_50%)] opacity-30"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ff00ff,#00ffff)] opacity-10"></div>
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+      <div className="fixed inset-0 bg-black">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neon-purple/20 via-transparent to-transparent animate-pulse"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
       </div>
 
-      <div className="relative min-h-screen flex flex-col justify-center items-center px-4 py-16">
-        <div className="w-full max-w-4xl mx-auto">
-          <div className="text-center mb-16 animate-float">
-            <h1 className="font-press-start text-5xl md:text-6xl mb-8 animate-glow text-neon-blue">
+      {/* Content */}
+      <div className="relative z-10 container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Title */}
+          <div className="text-center space-y-4">
+            <h1 className="font-press-start text-4xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue bg-clip-text text-transparent">
               Randoms.WTF
             </h1>
-            <p className="font-press-start text-sm md:text-base text-neon-green max-w-2xl mx-auto leading-relaxed">
-              True Random Generator
+            <p className="font-press-start text-neon-blue text-sm">
+              True Random Generator powered by Flow VRF
             </p>
           </div>
 
-          <div className="backdrop-blur-xl bg-black/30 rounded-3xl p-8 md:p-12 shadow-[0_0_50px_0_rgba(157,0,255,0.3)] border border-neon-purple/20">
-            <div className="flex justify-center mb-12">
-              <div className="inline-flex rounded-2xl bg-black/50 p-2 backdrop-blur-lg border border-neon-purple/20">
-                <button
-                  className={`px-6 py-4 rounded-xl transition-all duration-300 font-press-start text-sm ${
-                    activeTab === 'number'
-                      ? 'bg-neon-purple text-white shadow-[0_0_20px_0_rgba(157,0,255,0.5)]'
-                      : 'text-neon-blue hover:text-neon-pink hover:bg-black/30'
-                  }`}
-                  onClick={() => setActiveTab('number')}
-                >
-                  <span className="flex items-center gap-3">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Number
-                  </span>
-                </button>
-                <button
-                  className={`px-6 py-4 rounded-xl transition-all duration-300 font-press-start text-sm ${
-                    activeTab === 'list'
-                      ? 'bg-neon-purple text-white shadow-[0_0_20px_0_rgba(157,0,255,0.5)]'
-                      : 'text-neon-blue hover:text-neon-pink hover:bg-black/30'
-                  }`}
-                  onClick={() => setActiveTab('list')}
-                >
-                  <span className="flex items-center gap-3">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                    </svg>
-                    List
-                  </span>
-                </button>
+          {/* Tabs */}
+          <div className="flex flex-wrap justify-center gap-4">
+            <button
+              onClick={() => setActiveTab('number')}
+              className={`relative group ${activeTab === 'number' ? 'scale-105' : ''}`}
+            >
+              <div className={`absolute -inset-0.5 bg-gradient-to-r from-neon-purple to-neon-blue rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000 ${activeTab === 'number' ? 'opacity-100' : ''}`}></div>
+              <div className={`relative px-6 py-2 bg-black rounded-xl font-press-start text-sm ${activeTab === 'number' ? 'text-neon-blue' : 'text-white'} group-hover:text-neon-blue transition-all duration-300`}>
+                Random Number
               </div>
-            </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('list')}
+              className={`relative group ${activeTab === 'list' ? 'scale-105' : ''}`}
+            >
+              <div className={`absolute -inset-0.5 bg-gradient-to-r from-neon-purple to-neon-blue rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000 ${activeTab === 'list' ? 'opacity-100' : ''}`}></div>
+              <div className={`relative px-6 py-2 bg-black rounded-xl font-press-start text-sm ${activeTab === 'list' ? 'text-neon-blue' : 'text-white'} group-hover:text-neon-blue transition-all duration-300`}>
+                Random List
+              </div>
+            </button>
+            <button
+              onClick={() => setShowYolo(true)}
+              className="relative group"
+            >
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-pink to-neon-purple rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000"></div>
+              <div className="relative px-6 py-2 bg-black rounded-xl font-press-start text-sm text-white group-hover:text-neon-pink transition-all duration-300">
+                YOLO
+              </div>
+            </button>
+          </div>
 
-            <div className="transition-all duration-500">
-              {activeTab === 'number' ? <RandomNumber /> : <RandomList />}
-            </div>
+          {/* Content */}
+          <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+            {activeTab === 'number' && <RandomNumber />}
+            {activeTab === 'list' && <RandomList />}
           </div>
         </div>
       </div>
+
+      {/* YOLO Modal */}
+      {showYolo && <YoloRoll onClose={() => setShowYolo(false)} />}
     </main>
   );
 } 
