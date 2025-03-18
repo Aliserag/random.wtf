@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/aliserag/Documents/GitHub/random.wtf/contracts/RandomnessWTF.sol": {
+      "lastModificationDate": 1742325187312,
+      "contentHash": "dcaaa304ace9c8d6c16b033d3c1c22de",
+      "sourceName": "contracts/RandomnessWTF.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "RandomnessWTF"
+      ]
+    }
+  }
+}
