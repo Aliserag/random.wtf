@@ -18,11 +18,6 @@ export default function RandomNumber() {
       return;
     }
 
-    if (loading) {
-      setError('Please wait for the current number to be generated. Flow creates new blocks every 2-3 seconds.');
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
