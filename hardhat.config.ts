@@ -10,20 +10,23 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
 const config: HardhatUserConfig = {
   solidity: '0.8.19',
   networks: {
-    testnet: {
+    flow_testnet: {
       url: 'https://testnet.evm.nodes.onflow.org',
       accounts: [PRIVATE_KEY],
       gas: 500000,
       chainId: 545
     },
+    hardhat: {
+      allowUnlimitedContractSize: true,
+    },
   },
   etherscan: {
     apiKey: {
-      testnet: "abc"
+      flowTestnet: "abc"
     },
     customChains: [
       {
-        network: "testnet",
+        network: "flowTestnet",
         chainId: 545,
         urls: {
           apiURL: "https://evm-testnet.flowscan.io/api",
