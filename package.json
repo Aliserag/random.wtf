@@ -9,10 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@onflow/flow-sol-utils": "^0.0.1",
+    "ethers": "^6.11.1",
     "next": "14.1.3",
     "react": "^18",
-    "react-dom": "^18",
-    "ethers": "^6.11.1"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
