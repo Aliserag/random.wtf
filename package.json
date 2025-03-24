@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.13",
     "@openzeppelin/contracts": "^5.0.1",
     "@types/node": "^20",
     "@types/react": "^18",
