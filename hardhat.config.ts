@@ -16,6 +16,9 @@ const config: HardhatUserConfig = {
       gas: 500000,
       chainId: 545
     },
+    hardhat: {
+      allowUnlimitedContractSize: true,
+    },
   },
   etherscan: {
     apiKey: {
