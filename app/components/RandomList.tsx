@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { selectRandomItem } from '../utils/contracts';
+import { parseFileToRows } from '../utils/fileParser';
+import ResultCard from './ResultCard';
 
 export default function RandomList() {
   const [items, setItems] = useState<string>('');
@@ -9,6 +11,9 @@ export default function RandomList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputHistory, setInputHistory] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileProcessing, setFileProcessing] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const parseItems = (input: string): string[] => {
     // First, split by newlines
@@ -58,26 +63,131 @@ export default function RandomList() {
     setItems(historicalInput);
   };
 
+  // Handle drag events
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only set isDragging to false if we're leaving the container (not entering a child element)
+    // Check if related target is a child of the container
+    const container = e.currentTarget;
+    const relatedTarget = e.relatedTarget as Node;
+    
+    if (!relatedTarget || !container.contains(relatedTarget)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length === 0) return;
+    
+    const file = files[0];
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    
+    if (fileExt !== 'csv' && fileExt !== 'xlsx' && fileExt !== 'xls') {
+      setError('Only CSV and Excel files are supported');
+      return;
+    }
+    
+    try {
+      setFileProcessing(true);
+      setError(null);
+      
+      // Parse the file
+      const rows = await parseFileToRows(file);
+      
+      if (rows.length === 0) {
+        setError('No valid rows found in the file');
+        return;
+      }
+      
+      // Set the items in the textarea
+      setItems(rows.join('\n'));
+      
+    } catch (error) {
+      console.error('Error processing file:', error);
+      setError(error instanceof Error ? error.message : 'Failed to process file');
+    } finally {
+      setFileProcessing(false);
+    }
+  };
+
   return (
     <div className="space-y-10">
       <div className="space-y-3">
-        <label className="block font-press-start text-xs text-neon-blue">
-          Enter Items
+        <label className="flex justify-between items-center">
+          <span className="block font-press-start text-xs text-neon-blue">
+            Enter Items
+          </span>
+          <span className="font-press-start text-xs text-neon-purple">
+            or drag & drop CSV/XLSX
+          </span>
         </label>
-        <div className="relative group">
+        <div 
+          className={`relative group ${isDragging ? 'ring-2 ring-neon-pink' : ''}`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
           <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-pink to-neon-blue rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
           <div className="relative">
             <textarea
+              ref={textareaRef}
               value={items}
               onChange={(e) => setItems(e.target.value)}
               className="w-full px-4 py-4 bg-black/50 rounded-xl border border-neon-purple/20 focus:border-neon-blue focus:ring-2 focus:ring-neon-blue/50 focus:outline-none text-neon-green font-press-start text-sm transition-all duration-300 h-48"
-              placeholder="Enter items like:&#10;dad, mom, son&#10;&#10;Or one per line:&#10;tree&#10;rock&#10;sun"
+              placeholder="Enter items like:&#10;dad, mom, son&#10;&#10;Or one per line:&#10;tree&#10;rock&#10;sun&#10;&#10;Or drag & drop a CSV or Excel file here"
+              disabled={fileProcessing}
+              onDragEnter={(e) => e.stopPropagation()}
             />
             <div className="absolute top-3 right-3">
               <div className="font-press-start text-xs text-neon-pink">
                 {parseItems(items).length} items
               </div>
             </div>
+            
+            {/* Drag overlay */}
+            {isDragging && (
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <div className="font-press-start text-neon-pink text-lg animate-pulse">
+                  Drop file here
+                </div>
+              </div>
+            )}
+            
+            {/* Processing overlay */}
+            {fileProcessing && (
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <div className="text-center">
+                  <svg className="animate-spin h-10 w-10 text-neon-pink mx-auto mb-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <div className="font-press-start text-neon-pink text-sm">
+                    Processing file...
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -103,7 +213,7 @@ export default function RandomList() {
 
       <button
         onClick={generateRandom}
-        disabled={loading}
+        disabled={loading || fileProcessing}
         className="relative w-full group"
       >
         <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000 group-disabled:opacity-25 animate-gradient"></div>
@@ -134,15 +244,11 @@ export default function RandomList() {
       )}
 
       {result && !error && (
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-purple to-neon-blue rounded-xl blur opacity-75 animate-pulse"></div>
-          <div className="relative text-center space-y-4 bg-black rounded-xl p-8 border border-neon-purple">
-            <div className="font-press-start text-sm text-neon-blue">Selected Item</div>
-            <div className="font-press-start text-3xl md:text-4xl text-neon-green animate-glow break-all">
-              {result}
-            </div>
+        <ResultCard type="list">
+          <div className="font-press-start text-3xl md:text-4xl text-neon-green animate-glow break-all">
+            {result}
           </div>
-        </div>
+        </ResultCard>
       )}
     </div>
   );

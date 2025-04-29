@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { getRandomNumber } from '../utils/contracts';
 import { RANDOMNESS_CONTRACT_ADDRESS } from '../config/contracts';
+import ResultCard from './ResultCard';
 
 export default function RandomNumber() {
   const [min, setMin] = useState<number>(1);
@@ -103,15 +104,11 @@ export default function RandomNumber() {
       )}
 
       {result !== null && !error && (
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-purple to-neon-blue rounded-xl blur opacity-75 animate-pulse"></div>
-          <div className="relative text-center space-y-4 bg-black rounded-xl p-8 border border-neon-purple">
-            <div className="font-press-start text-sm text-neon-blue">Your Number</div>
-            <div className="font-press-start text-5xl md:text-6xl text-neon-green animate-glow">
-              {result}
-            </div>
+        <ResultCard type="number">
+          <div className="font-press-start text-5xl md:text-6xl text-neon-green animate-glow">
+            {result}
           </div>
-        </div>
+        </ResultCard>
       )}
 
       <div className="relative group cursor-pointer" onClick={() => setShowInfo(!showInfo)}>

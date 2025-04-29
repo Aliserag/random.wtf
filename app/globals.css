@@ -12,6 +12,23 @@
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
 
+@keyframes slide {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+@keyframes screenshot-flash {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+
+.screenshot-flash {
+  animation: screenshot-flash 0.3s ease-in-out;
+  z-index: 100;
+  position: relative;
+}
+
 :root {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 0, 0;
