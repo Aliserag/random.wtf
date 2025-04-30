@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
+import GoogleAnalytics from './components/GoogleAnalytics';
 
 export const metadata: Metadata = {
   title: 'Randoms.WTF - True Random Generator',
@@ -24,6 +25,7 @@ export default function RootLayout({
         <link rel="icon" href="/dice.gif" type="image/gif" />
       </head>
       <body className="min-h-screen bg-black">
+        <GoogleAnalytics />
         {children}
       </body>
     </html>
