@@ -12,6 +12,8 @@ export default function ResultCard({ children, type }: ResultCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [timestamp, setTimestamp] = useState<string>('');
   const [isCopying, setIsCopying] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
     // Generate compact timestamp in UTC
@@ -26,6 +28,11 @@ export default function ResultCard({ children, type }: ResultCardProps) {
     const minutes = now.getUTCMinutes().toString().padStart(2, '0');
     
     setTimestamp(`${year}/${month}/${day} ${hours}:${minutes} UTC`);
+    
+    // Check if user is on mobile
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+    const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    setIsMobile(isMobileDevice);
   }, []);
   
   const handleCopy = async () => {
@@ -33,11 +40,25 @@ export default function ResultCard({ children, type }: ResultCardProps) {
     
     try {
       setIsCopying(true);
+      setCopyFeedback('');
+      
       await captureScreenshot(cardRef.current);
-      // Show success state briefly
-      setTimeout(() => setIsCopying(false), 1000);
+      
+      // Show appropriate feedback based on device
+      if (isMobile) {
+        setCopyFeedback('Image saved!');
+      } else {
+        setCopyFeedback('Copied!');
+      }
+      
+      // Reset state after delay
+      setTimeout(() => {
+        setIsCopying(false);
+        setTimeout(() => setCopyFeedback(''), 500);
+      }, 1500);
     } catch (error) {
       console.error('Failed to copy:', error);
+      setCopyFeedback('Failed to copy');
       setIsCopying(false);
     }
   };
@@ -66,10 +87,11 @@ export default function ResultCard({ children, type }: ResultCardProps) {
             onClick={handleCopy} 
             disabled={isCopying}
             className="group relative flex items-center justify-center"
-            aria-label="Copy result"
+            aria-label={isMobile ? "Save result as image" : "Copy result"}
+            title={isMobile ? "Save as image" : "Copy to clipboard"}
           >
-            {isCopying ? (
-              <span className="text-neon-green text-xs font-press-start animate-pulse">Copied!</span>
+            {copyFeedback ? (
+              <span className="text-neon-green text-xs font-press-start animate-pulse">{copyFeedback}</span>
             ) : (
               <svg 
                 className="w-5 h-5 text-neon-purple/70 hover:text-neon-blue transition-colors duration-300" 
@@ -81,7 +103,10 @@ export default function ResultCard({ children, type }: ResultCardProps) {
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
                   strokeWidth={2} 
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" 
+                  d={isMobile 
+                    ? "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" // Download icon for mobile
+                    : "M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" // Copy icon for desktop
+                  } 
                 />
               </svg>
             )}
