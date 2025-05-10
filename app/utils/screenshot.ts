@@ -19,10 +19,13 @@ export const captureScreenshot = async (elementRef: HTMLElement): Promise<void> 
       logging: false,
     });
 
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    
     // Try to use different clipboard methods depending on browser support
     try {
       // Modern clipboard API (works on most desktop browsers)
-      if (navigator.clipboard && navigator.clipboard.write) {
+      if (navigator.clipboard && navigator.clipboard.write && !isIOS) {
         // Convert to blob
         const blob = await new Promise<Blob>((resolve, reject) => {
           canvas.toBlob((blob) => {
@@ -37,42 +40,66 @@ export const captureScreenshot = async (elementRef: HTMLElement): Promise<void> 
           })
         ]);
       } 
-      // Fallback for mobile devices - use dataURL and text copying
+      // Fallback for mobile devices - direct download approach
       else {
         // Get the data URL of the canvas
         const dataUrl = canvas.toDataURL('image/png');
         
-        // For devices that support text clipboard but not image clipboard
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          // Copy a message with the data URL
-          await navigator.clipboard.writeText("Screenshot taken! You can save the image from the browser.");
-          
-          // Open the image in a new tab (mobile users can save from there)
-          const tab = window.open();
-          if (tab) {
-            tab.document.write(`<img src="${dataUrl}" alt="Screenshot" style="max-width: 100%;" />`);
-            tab.document.title = 'Random.wtf Screenshot';
-            tab.document.close();
-          }
-        } else {
-          // Last resort fallback - create a temporary link and click it
+        // iOS specific handling - create a direct download link
+        if (isIOS) {
+          // For iOS, we'll create a temporary link and trigger a download
           const link = document.createElement('a');
           link.href = dataUrl;
           link.download = 'random-wtf-result.png';
+          
+          // iOS requires the link to be in the DOM and visible
+          link.style.position = 'fixed';
+          link.style.top = '0';
+          link.style.opacity = '0';
+          link.style.pointerEvents = 'none';
+          link.style.zIndex = '-1';
+          
           document.body.appendChild(link);
           link.click();
-          document.body.removeChild(link);
+          
+          // Remove after a delay
+          setTimeout(() => {
+            document.body.removeChild(link);
+          }, 100);
+          
+          return;
         }
+        
+        // For Android and other devices
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          // Let user know what's happening
+          await navigator.clipboard.writeText("Screenshot saved! Check your downloads folder.");
+        }
+        
+        // Create a download link for all mobile devices
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'random-wtf-result.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
     } catch (clipboardError) {
       console.error('Clipboard API failed, falling back to download:', clipboardError);
       // Final fallback - just trigger download
+      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
       link.download = 'random-wtf-result.png';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      
+      // Ensure link is removed on iOS
+      setTimeout(() => {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link);
+        }
+      }, 100);
     }
 
     // Remove screenshot effect after a delay
