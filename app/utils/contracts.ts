@@ -209,4 +209,53 @@ export const generateVerifiableRandomItem = async (items: string[]): Promise<{
     console.error('Error in generateVerifiableRandomItem:', error);
     throw new Error(error.message || 'Failed to generate verifiable random item');
   }
+};
+
+// Yolo decision function
+export const makeYoloDecision = async (): Promise<{
+  decision: string;
+  advice: string;
+  txHash: string;
+  blockNumber: number;
+  decisionId: string;
+}> => {
+  try {
+    const { provider, contract: signerContract } = await initializeWalletProvider();
+    
+    const enhancedContract = new ethers.Contract(
+      RANDOMNESS_CONTRACT_ADDRESS,
+      RANDOMNESS_CONTRACT_ABI,
+      signerContract?.runner || provider
+    );
+
+    const tx = await enhancedContract.makeYoloDecision();
+    const receipt = await tx.wait();
+    
+    // Parse the event to get the result
+    const event = receipt.logs.find((log: any) => {
+      try {
+        const parsed = enhancedContract.interface.parseLog(log);
+        return parsed?.name === 'YoloDecisionMade';
+      } catch {
+        return false;
+      }
+    });
+
+    if (!event) {
+      throw new Error('Could not find YoloDecisionMade event');
+    }
+
+    const parsedEvent = enhancedContract.interface.parseLog(event);
+    
+    return {
+      decision: parsedEvent?.args.decision,
+      advice: parsedEvent?.args.advice,
+      txHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      decisionId: parsedEvent?.args.decisionId
+    };
+  } catch (error: any) {
+    console.error('Error in makeYoloDecision:', error);
+    throw new Error(error.message || 'Failed to make Yolo decision');
+  }
 }; 

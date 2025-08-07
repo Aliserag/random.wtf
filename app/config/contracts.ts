@@ -1,9 +1,10 @@
 import { ethers } from 'ethers';
 
-export const RANDOMNESS_CONTRACT_ADDRESS = '0x4Fc101E7ecCD7DA2BF88Aa5BAe67b234388aF6FC'; // v2 Enhanced Contract
+export const RANDOMNESS_CONTRACT_ADDRESS = '0x0911C1844AD219c941c0D5597460E730A2DF02Ee'; // v3 Enhanced Contract with Yolo
 
-// Legacy v1 contract address (archived)
-export const LEGACY_RANDOMNESS_CONTRACT_ADDRESS = '0x91502a85Ad74ba94499145477dccA19b3E1D6124';
+// Legacy contract addresses (archived)
+export const LEGACY_RANDOMNESS_CONTRACT_ADDRESS_V2 = '0x4Fc101E7ecCD7DA2BF88Aa5BAe67b234388aF6FC'; // v2
+export const LEGACY_RANDOMNESS_CONTRACT_ADDRESS_V1 = '0x91502a85Ad74ba94499145477dccA19b3E1D6124'; // v1
 
 
 export const RANDOMNESS_CONTRACT_ABI = [
@@ -152,6 +153,55 @@ export const RANDOMNESS_CONTRACT_ABI = [
       }
     ],
     "name": "VerifiableRandomNumberGenerated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "decisionId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "requester",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "decision",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "advice",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "randomValue",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blockNumber",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "YoloDecisionMade",
     "type": "event"
   },
   {
@@ -337,6 +387,70 @@ export const RANDOMNESS_CONTRACT_ABI = [
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "makeYoloDecision",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "decisionId",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "decisionId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getYoloDetails",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "decision",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "advice",
+            "type": "string"
+          },
+          {
+            "internalType": "uint64",
+            "name": "randomValue",
+            "type": "uint64"
+          },
+          {
+            "internalType": "address",
+            "name": "requester",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "blockNumber",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct RandomnessWTF.YoloDecision",
+        "name": "",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",

@@ -35,9 +35,19 @@ contract RandomnessWTF is CadenceRandomConsumer {
         uint256 blockNumber;
     }
 
+    struct YoloDecision {
+        string decision;
+        string advice;
+        uint64 randomValue;
+        address requester;
+        uint256 timestamp;
+        uint256 blockNumber;
+    }
+
     // Storage for verifiable generations
     mapping(bytes32 => RandomGeneration) public randomGenerations;
     mapping(bytes32 => RandomSelection) public randomSelections;
+    mapping(bytes32 => YoloDecision) public yoloDecisions;
     
     // Generation counter for unique IDs
     uint256 public generationCount;
@@ -63,6 +73,16 @@ contract RandomnessWTF is CadenceRandomConsumer {
         string selectedItem,
         string[] items,
         uint256 index,
+        uint256 blockNumber,
+        uint256 timestamp
+    );
+
+    event YoloDecisionMade(
+        bytes32 indexed decisionId,
+        address indexed requester,
+        string decision,
+        string advice,
+        uint64 randomValue,
         uint256 blockNumber,
         uint256 timestamp
     );
@@ -172,6 +192,54 @@ contract RandomnessWTF is CadenceRandomConsumer {
         return selectionId;
     }
 
+    function makeYoloDecision() external returns (bytes32 decisionId) {
+        uint64 randomValue = _getRevertibleRandomInRange(1, 100);
+        
+        string memory decision;
+        string memory advice;
+        
+        if (randomValue <= 50) {
+            decision = "NO WAY!";
+            advice = "Don't do it! Listen to your better judgment.";
+        } else {
+            decision = "YOLO!";
+            advice = "Do it! You only live once!";
+        }
+        
+        // Create unique ID for this decision
+        decisionId = keccak256(abi.encodePacked(
+            msg.sender,
+            block.timestamp,
+            block.number,
+            decision,
+            randomValue,
+            generationCount++
+        ));
+
+        // Store decision details
+        yoloDecisions[decisionId] = YoloDecision({
+            decision: decision,
+            advice: advice,
+            randomValue: randomValue,
+            requester: msg.sender,
+            timestamp: block.timestamp,
+            blockNumber: block.number
+        });
+
+        // Emit Yolo-specific event
+        emit YoloDecisionMade(
+            decisionId,
+            msg.sender,
+            decision,
+            advice,
+            randomValue,
+            block.number,
+            block.timestamp
+        );
+        
+        return decisionId;
+    }
+
     // ====== VERIFICATION FUNCTIONS ======
 
     function getGenerationDetails(bytes32 generationId) external view returns (RandomGeneration memory) {
@@ -180,6 +248,10 @@ contract RandomnessWTF is CadenceRandomConsumer {
 
     function getSelectionDetails(bytes32 selectionId) external view returns (RandomSelection memory) {
         return randomSelections[selectionId];
+    }
+
+    function getYoloDetails(bytes32 decisionId) external view returns (YoloDecision memory) {
+        return yoloDecisions[decisionId];
     }
 
     function verifyRandomGeneration(
@@ -199,5 +271,15 @@ contract RandomnessWTF is CadenceRandomConsumer {
         RandomSelection memory sel = randomSelections[selectionId];
         return sel.requester == expectedRequester && 
                keccak256(bytes(sel.result)) == keccak256(bytes(expectedResult));
+    }
+
+    function verifyYoloDecision(
+        bytes32 decisionId,
+        address expectedRequester,
+        string calldata expectedDecision
+    ) external view returns (bool) {
+        YoloDecision memory yolo = yoloDecisions[decisionId];
+        return yolo.requester == expectedRequester && 
+               keccak256(bytes(yolo.decision)) == keccak256(bytes(expectedDecision));
     }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getRandomNumber, generateVerifiableRandomNumber } from '../utils/contracts';
+import { getRandomNumber, makeYoloDecision } from '../utils/contracts';
 import VerificationDetails from './VerificationDetails';
 
 interface YoloRollProps {
@@ -17,7 +17,7 @@ export default function YoloRoll({ onClose, isVerifiableMode, walletAddress }: Y
   const [verificationResult, setVerificationResult] = useState<{
     txHash: string;
     blockNumber: number;
-    generationId: string;
+    decisionId: string;
   } | null>(null);
 
   const roll = async () => {
@@ -29,22 +29,21 @@ export default function YoloRoll({ onClose, isVerifiableMode, walletAddress }: Y
       let randomNum: number;
       
       if (isVerifiableMode && walletAddress) {
-        // Verifiable mode - create transaction
-        const verificationData = await generateVerifiableRandomNumber(1, 100);
-        randomNum = verificationData.result;
+        // Verifiable mode - create transaction with meaningful Yolo decision
+        const yoloData = await makeYoloDecision();
+        setResult(yoloData.decision);
         setVerificationResult({
-          txHash: verificationData.txHash,
-          blockNumber: verificationData.blockNumber,
-          generationId: verificationData.generationId
+          txHash: yoloData.txHash,
+          blockNumber: yoloData.blockNumber,
+          decisionId: yoloData.decisionId
         });
       } else {
         // Normal mode - view function
         randomNum = await getRandomNumber(1, 100);
+        // Simulate dice rolling animation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setResult(randomNum <= 50 ? 'NO WAY!' : 'YOLO!');
       }
-
-      // Simulate dice rolling animation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setResult(randomNum <= 50 ? 'NO WAY!' : 'YOLO!');
     } catch (error) {
       console.error('Error rolling dice:', error);
       setError(error instanceof Error ? error.message : 'Failed to roll');
@@ -108,7 +107,10 @@ export default function YoloRoll({ onClose, isVerifiableMode, walletAddress }: Y
             {isVerifiableMode && verificationResult && walletAddress && result && (
               <div className="mt-6 pt-6 border-t border-white/10">
                 <VerificationDetails 
-                  result={verificationResult}
+                  result={{
+                    ...verificationResult,
+                    generationId: verificationResult.decisionId
+                  }}
                   walletAddress={walletAddress}
                   customResult={result}
                 />

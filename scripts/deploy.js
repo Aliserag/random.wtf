@@ -3,7 +3,7 @@ const hre = require("hardhat");
 async function main() {
   console.log("Deploying RandomnessWTF contract...");
 
-  const RandomnessWTF = await hre.ethers.getContractFactory("RandomnessWTF");
+  const RandomnessWTF = await hre.ethers.getContractFactory("contracts/RandomnessWTF.sol:RandomnessWTF");
   const randomness = await RandomnessWTF.deploy();
 
   await randomness.waitForDeployment();
