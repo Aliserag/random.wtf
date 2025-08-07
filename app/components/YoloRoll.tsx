@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { getRandomNumber, makeYoloDecision } from '../utils/contracts';
+import { makeYoloDecisionWagmi } from '../utils/wagmi-contracts';
+import { useWalletClient } from 'wagmi';
 import VerificationDetails from './VerificationDetails';
 
 interface YoloRollProps {
@@ -19,6 +21,8 @@ export default function YoloRoll({ onClose, isVerifiableMode, walletAddress }: Y
     blockNumber: number;
     decisionId: string;
   } | null>(null);
+  
+  const { data: walletClient } = useWalletClient();
 
   const roll = async () => {
     try {
@@ -28,9 +32,9 @@ export default function YoloRoll({ onClose, isVerifiableMode, walletAddress }: Y
 
       let randomNum: number;
       
-      if (isVerifiableMode && walletAddress) {
-        // Verifiable mode - create transaction with meaningful Yolo decision
-        const yoloData = await makeYoloDecision();
+      if (isVerifiableMode && walletAddress && walletClient) {
+        // Verifiable mode - create transaction with meaningful Yolo decision using Wagmi
+        const yoloData = await makeYoloDecisionWagmi(walletClient);
         setResult(yoloData.decision);
         setVerificationResult({
           txHash: yoloData.txHash,

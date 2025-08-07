@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { selectRandomItem, generateVerifiableRandomItem } from '../utils/contracts';
+import { generateVerifiableRandomItemWagmi } from '../utils/wagmi-contracts';
+import { useWalletClient } from 'wagmi';
 import { parseFileToRows } from '../utils/fileParser';
 import ResultCard from './ResultCard';
 import VerificationDetails from './VerificationDetails';
@@ -26,6 +28,8 @@ export default function RandomList({ isVerifiableMode, walletAddress }: RandomLi
     selectionId: string;
   } | null>(null);
   const [currentItemList, setCurrentItemList] = useState<string[]>([]);
+  
+  const { data: walletClient } = useWalletClient();
 
   const parseItems = (input: string): string[] => {
     // First, split by newlines
@@ -61,9 +65,9 @@ export default function RandomList({ isVerifiableMode, walletAddress }: RandomLi
       // Store the current item list for verification display
       setCurrentItemList(itemList);
 
-      if (isVerifiableMode && walletAddress) {
-        // Verifiable mode - create transaction
-        const verificationData = await generateVerifiableRandomItem(itemList);
+      if (isVerifiableMode && walletAddress && walletClient) {
+        // Verifiable mode - create transaction using Wagmi
+        const verificationData = await generateVerifiableRandomItemWagmi(walletClient, itemList);
         setResult(verificationData.result);
         setVerificationResult({
           txHash: verificationData.txHash,

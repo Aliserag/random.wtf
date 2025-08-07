@@ -1,7 +1,9 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
+import '@rainbow-me/rainbowkit/styles.css';
 import GoogleAnalytics from './components/GoogleAnalytics';
+import WalletProviders from './providers/WalletProviders';
 
 export const metadata: Metadata = {
   title: 'Randoms.WTF - True Random Generator',
@@ -26,7 +28,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-black">
         <GoogleAnalytics />
-        {children}
+        <WalletProviders>
+          {children}
+        </WalletProviders>
       </body>
     </html>
   );

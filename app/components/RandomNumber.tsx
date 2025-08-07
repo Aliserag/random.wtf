@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { getRandomNumber, generateVerifiableRandomNumber } from '../utils/contracts';
+import { generateVerifiableRandomNumberWagmi } from '../utils/wagmi-contracts';
+import { useWalletClient } from 'wagmi';
 import { RANDOMNESS_CONTRACT_ADDRESS } from '../config/contracts';
 import ResultCard from './ResultCard';
 import VerificationDetails from './VerificationDetails';
@@ -23,6 +25,8 @@ export default function RandomNumber({ isVerifiableMode, walletAddress }: Random
     blockNumber: number;
     generationId: string;
   } | null>(null);
+  
+  const { data: walletClient } = useWalletClient();
 
   const generateRandom = async () => {
     if (min >= max) {
@@ -35,9 +39,9 @@ export default function RandomNumber({ isVerifiableMode, walletAddress }: Random
       setError(null);
       setVerificationResult(null);
 
-      if (isVerifiableMode && walletAddress) {
-        // Verifiable mode - create transaction
-        const verificationData = await generateVerifiableRandomNumber(min, max);
+      if (isVerifiableMode && walletAddress && walletClient) {
+        // Verifiable mode - create transaction using Wagmi
+        const verificationData = await generateVerifiableRandomNumberWagmi(walletClient, min, max);
         setResult(verificationData.result);
         setVerificationResult({
           txHash: verificationData.txHash,
