@@ -25,25 +25,22 @@ export default function Home() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
       </div>
 
+      {/* Verifiable Mode Button - Top Right */}
+      <div className="fixed top-4 right-4 z-20">
+        <VerifiableMode onModeChange={handleModeChange} />
+      </div>
+
       {/* Content */}
       <div className="relative z-10 container mx-auto px-2 md:px-4 py-8 md:py-12">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
           {/* Title */}
           <div className="text-center space-y-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1"></div>
-              <div className="flex-1 text-center">
-                <h1 className="font-press-start text-2xl md:text-4xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue bg-clip-text text-transparent px-2">
-                  Randoms.WTF
-                </h1>
-                <p className="font-press-start text-neon-blue text-xs md:text-sm px-2 mt-4">
-                  True Random Generator powered by Flow VRF
-                </p>
-              </div>
-              <div className="flex-1 flex justify-end">
-                <VerifiableMode onModeChange={handleModeChange} />
-              </div>
-            </div>
+            <h1 className="font-press-start text-2xl md:text-4xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue bg-clip-text text-transparent px-2">
+              Randoms.WTF
+            </h1>
+            <p className="font-press-start text-neon-blue text-xs md:text-sm px-2 mt-4">
+              True Random Generator powered by Flow VRF
+            </p>
           </div>
 
           {/* Tabs */}
