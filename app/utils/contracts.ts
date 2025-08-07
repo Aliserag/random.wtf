@@ -66,14 +66,15 @@ export const initializeWalletProvider = async () => {
 
     const walletProvider = new ethers.BrowserProvider(window.ethereum);
     const signer = await walletProvider.getSigner();
-    provider = walletProvider;
-    contract = new ethers.Contract(
+    
+    // Create wallet-specific contract instance without overwriting globals
+    const walletContract = new ethers.Contract(
       RANDOMNESS_CONTRACT_ADDRESS,
       RANDOMNESS_CONTRACT_ABI,
       signer
     );
 
-    return { provider, contract };
+    return { provider: walletProvider, contract: walletContract };
   } catch (error: any) {
     console.error('Failed to initialize provider:', error);
     throw new Error(error.message || 'Failed to connect to wallet');
@@ -81,18 +82,18 @@ export const initializeWalletProvider = async () => {
 };
 
 export const getRandomNumber = async (min: number, max: number): Promise<number> => {
-  // Use read-only provider for view functions
-  if (!contract) {
-    initializeReadOnlyProvider();
-  }
-  if (!contract) throw new Error('Contract not initialized');
-
   try {
+    // Always reinitialize to ensure fresh connection for view functions
+    const { contract: readOnlyContract } = initializeReadOnlyProvider();
+    if (!readOnlyContract) throw new Error('Contract not initialized');
+
     // Convert numbers to BigInt for uint64
     const minBigInt = BigInt(Math.floor(min));
     const maxBigInt = BigInt(Math.floor(max));
     
-    const result = await contract.getRandomNumber(minBigInt, maxBigInt);
+    console.log(`Calling getRandomNumber with min: ${min}, max: ${max} (using read-only provider)`);
+    const result = await readOnlyContract.getRandomNumber(minBigInt, maxBigInt);
+    console.log(`Got result: ${result} (from read-only provider)`);
     return Number(result);
   } catch (error: any) {
     console.error('Error in getRandomNumber:', error);
@@ -101,14 +102,15 @@ export const getRandomNumber = async (min: number, max: number): Promise<number>
 };
 
 export const selectRandomItem = async (items: string[]): Promise<string> => {
-  // Use read-only provider for view functions
-  if (!contract) {
-    initializeReadOnlyProvider();
-  }
-  if (!contract) throw new Error('Contract not initialized');
-
   try {
-    return await contract.selectRandomItem(items);
+    // Always reinitialize to ensure fresh connection for view functions
+    const { contract: readOnlyContract } = initializeReadOnlyProvider();
+    if (!readOnlyContract) throw new Error('Contract not initialized');
+
+    console.log(`Calling selectRandomItem with ${items.length} items`);
+    const result = await readOnlyContract.selectRandomItem(items);
+    console.log(`Selected item: ${result}`);
+    return result;
   } catch (error: any) {
     console.error('Error in selectRandomItem:', error);
     throw new Error(error.message || 'Failed to select random item');
@@ -123,6 +125,7 @@ export const generateVerifiableRandomNumber = async (min: number, max: number): 
   generationId: string;
 }> => {
   try {
+    console.log('Using wallet provider for verifiable random number');
     const { provider, contract: signerContract } = await initializeWalletProvider();
     
     const enhancedContract = new ethers.Contract(
