@@ -4,10 +4,18 @@ import React, { useState } from 'react';
 import RandomNumber from './components/RandomNumber';
 import RandomList from './components/RandomList';
 import YoloRoll from './components/YoloRoll';
+import VerifiableMode from './components/VerifiableMode';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('number');
   const [showYolo, setShowYolo] = useState(false);
+  const [isVerifiableMode, setIsVerifiableMode] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  const handleModeChange = (verifiable: boolean, address: string | null) => {
+    setIsVerifiableMode(verifiable);
+    setWalletAddress(address);
+  };
 
   return (
     <main className="min-h-screen bg-black overflow-x-hidden relative">
@@ -22,12 +30,20 @@ export default function Home() {
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
           {/* Title */}
           <div className="text-center space-y-4">
-            <h1 className="font-press-start text-2xl md:text-4xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue bg-clip-text text-transparent px-2">
-              Randoms.WTF
-            </h1>
-            <p className="font-press-start text-neon-blue text-xs md:text-sm px-2">
-              True Random Generator powered by Flow VRF
-            </p>
+            <div className="flex justify-between items-start">
+              <div className="flex-1"></div>
+              <div className="flex-1 text-center">
+                <h1 className="font-press-start text-2xl md:text-4xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue bg-clip-text text-transparent px-2">
+                  Randoms.WTF
+                </h1>
+                <p className="font-press-start text-neon-blue text-xs md:text-sm px-2 mt-4">
+                  True Random Generator powered by Flow VRF
+                </p>
+              </div>
+              <div className="flex-1 flex justify-end">
+                <VerifiableMode onModeChange={handleModeChange} />
+              </div>
+            </div>
           </div>
 
           {/* Tabs */}
@@ -63,14 +79,30 @@ export default function Home() {
 
           {/* Content */}
           <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-6">
-            {activeTab === 'number' && <RandomNumber />}
-            {activeTab === 'list' && <RandomList />}
+            {activeTab === 'number' && (
+              <RandomNumber 
+                isVerifiableMode={isVerifiableMode}
+                walletAddress={walletAddress}
+              />
+            )}
+            {activeTab === 'list' && (
+              <RandomList 
+                isVerifiableMode={isVerifiableMode}
+                walletAddress={walletAddress}
+              />
+            )}
           </div>
         </div>
       </div>
 
       {/* YOLO Modal */}
-      {showYolo && <YoloRoll onClose={() => setShowYolo(false)} />}
+      {showYolo && (
+        <YoloRoll 
+          onClose={() => setShowYolo(false)}
+          isVerifiableMode={isVerifiableMode}
+          walletAddress={walletAddress}
+        />
+      )}
     </main>
   );
 } 

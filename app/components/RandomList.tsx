@@ -1,11 +1,17 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { selectRandomItem } from '../utils/contracts';
+import { selectRandomItem, generateVerifiableRandomItem } from '../utils/contracts';
 import { parseFileToRows } from '../utils/fileParser';
 import ResultCard from './ResultCard';
+import VerificationDetails from './VerificationDetails';
 
-export default function RandomList() {
+interface RandomListProps {
+  isVerifiableMode: boolean;
+  walletAddress: string | null;
+}
+
+export default function RandomList({ isVerifiableMode, walletAddress }: RandomListProps) {
   const [items, setItems] = useState<string>('');
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -14,6 +20,12 @@ export default function RandomList() {
   const [isDragging, setIsDragging] = useState(false);
   const [fileProcessing, setFileProcessing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [verificationResult, setVerificationResult] = useState<{
+    txHash: string;
+    blockNumber: number;
+    selectionId: string;
+  } | null>(null);
+  const [currentItemList, setCurrentItemList] = useState<string[]>([]);
 
   const parseItems = (input: string): string[] => {
     // First, split by newlines
@@ -44,8 +56,25 @@ export default function RandomList() {
 
       setLoading(true);
       setError(null);
-      const selectedItem = await selectRandomItem(itemList);
-      setResult(selectedItem);
+      setVerificationResult(null);
+
+      // Store the current item list for verification display
+      setCurrentItemList(itemList);
+
+      if (isVerifiableMode && walletAddress) {
+        // Verifiable mode - create transaction
+        const verificationData = await generateVerifiableRandomItem(itemList);
+        setResult(verificationData.result);
+        setVerificationResult({
+          txHash: verificationData.txHash,
+          blockNumber: verificationData.blockNumber,
+          selectionId: verificationData.selectionId
+        });
+      } else {
+        // Normal mode - view function
+        const selectedItem = await selectRandomItem(itemList);
+        setResult(selectedItem);
+      }
       
       // Add to history if not already present
       if (!inputHistory.includes(items)) {
@@ -224,14 +253,18 @@ export default function RandomList() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <span>Choosing...</span>
+              <span>{isVerifiableMode ? 'Creating transaction...' : 'Choosing...'}</span>
             </>
           ) : (
             <>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                {isVerifiableMode ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                )}
               </svg>
-              <span>Choose Random Item</span>
+              <span>{isVerifiableMode ? 'Choose Verifiable Item' : 'Choose Random Item'}</span>
             </>
           )}
         </div>
@@ -244,11 +277,22 @@ export default function RandomList() {
       )}
 
       {result && !error && (
-        <ResultCard type="list">
-          <div className="font-press-start text-3xl md:text-4xl text-neon-green animate-glow break-all">
-            {result}
-          </div>
-        </ResultCard>
+        <>
+          <ResultCard type="list">
+            <div className="font-press-start text-3xl md:text-4xl text-neon-green animate-glow break-all">
+              {result}
+            </div>
+          </ResultCard>
+          
+          {/* Verification Details */}
+          {isVerifiableMode && verificationResult && walletAddress && (
+            <VerificationDetails 
+              result={verificationResult}
+              walletAddress={walletAddress}
+              allItems={currentItemList}
+            />
+          )}
+        </>
       )}
     </div>
   );

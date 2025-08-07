@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
-import { RANDOMNESS_CONTRACT_ABI, RANDOMNESS_CONTRACT_ADDRESS } from '../config/contracts';
+import { 
+  RANDOMNESS_CONTRACT_ABI, 
+  RANDOMNESS_CONTRACT_ADDRESS
+} from '../config/contracts';
 
 let provider: ethers.Provider | null = null;
 let contract: ethers.Contract | null = null;
@@ -109,5 +112,101 @@ export const selectRandomItem = async (items: string[]): Promise<string> => {
   } catch (error: any) {
     console.error('Error in selectRandomItem:', error);
     throw new Error(error.message || 'Failed to select random item');
+  }
+};
+
+// Verifiable transaction functions (using enhanced contract v2)
+export const generateVerifiableRandomNumber = async (min: number, max: number): Promise<{
+  result: number;
+  txHash: string;
+  blockNumber: number;
+  generationId: string;
+}> => {
+  try {
+    const { provider, contract: signerContract } = await initializeWalletProvider();
+    
+    const enhancedContract = new ethers.Contract(
+      RANDOMNESS_CONTRACT_ADDRESS,
+      RANDOMNESS_CONTRACT_ABI,
+      signerContract?.runner || provider
+    );
+
+    const minBigInt = BigInt(Math.floor(min));
+    const maxBigInt = BigInt(Math.floor(max));
+    
+    const tx = await enhancedContract.generateVerifiableRandomNumber(minBigInt, maxBigInt);
+    const receipt = await tx.wait();
+    
+    // Parse the event to get the result
+    const event = receipt.logs.find((log: any) => {
+      try {
+        const parsed = enhancedContract.interface.parseLog(log);
+        return parsed?.name === 'VerifiableRandomNumberGenerated';
+      } catch {
+        return false;
+      }
+    });
+
+    if (!event) {
+      throw new Error('Could not find VerifiableRandomNumberGenerated event');
+    }
+
+    const parsedEvent = enhancedContract.interface.parseLog(event);
+    
+    return {
+      result: Number(parsedEvent?.args.randomNumber),
+      txHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      generationId: parsedEvent?.args.generationId
+    };
+  } catch (error: any) {
+    console.error('Error in generateVerifiableRandomNumber:', error);
+    throw new Error(error.message || 'Failed to generate verifiable random number');
+  }
+};
+
+export const generateVerifiableRandomItem = async (items: string[]): Promise<{
+  result: string;
+  txHash: string;
+  blockNumber: number;
+  selectionId: string;
+}> => {
+  try {
+    const { provider, contract: signerContract } = await initializeWalletProvider();
+    
+    const enhancedContract = new ethers.Contract(
+      RANDOMNESS_CONTRACT_ADDRESS,
+      RANDOMNESS_CONTRACT_ABI,
+      signerContract?.runner || provider
+    );
+
+    const tx = await enhancedContract.generateVerifiableRandomItem(items);
+    const receipt = await tx.wait();
+    
+    // Parse the event to get the result
+    const event = receipt.logs.find((log: any) => {
+      try {
+        const parsed = enhancedContract.interface.parseLog(log);
+        return parsed?.name === 'VerifiableRandomItemSelected';
+      } catch {
+        return false;
+      }
+    });
+
+    if (!event) {
+      throw new Error('Could not find VerifiableRandomItemSelected event');
+    }
+
+    const parsedEvent = enhancedContract.interface.parseLog(event);
+    
+    return {
+      result: parsedEvent?.args.selectedItem,
+      txHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      selectionId: parsedEvent?.args.selectionId
+    };
+  } catch (error: any) {
+    console.error('Error in generateVerifiableRandomItem:', error);
+    throw new Error(error.message || 'Failed to generate verifiable random item');
   }
 }; 

@@ -6,7 +6,7 @@ import html2canvas from 'html2canvas';
 
 type ResultCardProps = {
   children: React.ReactNode;
-  type: 'number' | 'list' | 'yolo';
+  type: 'number' | 'list' | 'yolo' | 'item';
 };
 
 export default function ResultCard({ children, type }: ResultCardProps) {
@@ -136,6 +136,7 @@ export default function ResultCard({ children, type }: ResultCardProps) {
           <div className="font-press-start text-sm text-neon-blue">
             {type === 'number' && 'Your Number'}
             {type === 'list' && 'Selected Item'}
+            {type === 'item' && 'Selected Item'}
             {type === 'yolo' && 'YOLO Result'}
           </div>
           

@@ -1,19 +1,47 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getRandomNumber } from '../utils/contracts';
+import { getRandomNumber, generateVerifiableRandomNumber } from '../utils/contracts';
+import VerificationDetails from './VerificationDetails';
 
-export default function YoloRoll({ onClose }: { onClose: () => void }) {
+interface YoloRollProps {
+  onClose: () => void;
+  isVerifiableMode: boolean;
+  walletAddress: string | null;
+}
+
+export default function YoloRoll({ onClose, isVerifiableMode, walletAddress }: YoloRollProps) {
   const [rolling, setRolling] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [verificationResult, setVerificationResult] = useState<{
+    txHash: string;
+    blockNumber: number;
+    generationId: string;
+  } | null>(null);
 
   const roll = async () => {
     try {
       setRolling(true);
       setError(null);
-      // Get a random number between 1 and 100
-      const randomNum = await getRandomNumber(1, 100);
+      setVerificationResult(null);
+
+      let randomNum: number;
+      
+      if (isVerifiableMode && walletAddress) {
+        // Verifiable mode - create transaction
+        const verificationData = await generateVerifiableRandomNumber(1, 100);
+        randomNum = verificationData.result;
+        setVerificationResult({
+          txHash: verificationData.txHash,
+          blockNumber: verificationData.blockNumber,
+          generationId: verificationData.generationId
+        });
+      } else {
+        // Normal mode - view function
+        randomNum = await getRandomNumber(1, 100);
+      }
+
       // Simulate dice rolling animation
       await new Promise(resolve => setTimeout(resolve, 2000));
       setResult(randomNum <= 50 ? 'NO WAY!' : 'YOLO!');
@@ -29,7 +57,7 @@ export default function YoloRoll({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="relative">
         <div className="absolute -inset-1 bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue rounded-2xl blur opacity-75 animate-pulse"></div>
-        <div className="relative bg-black rounded-xl p-8 max-w-sm w-full space-y-6">
+        <div className="relative bg-black rounded-xl p-8 max-w-lg w-full space-y-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
@@ -72,9 +100,20 @@ export default function YoloRoll({ onClose }: { onClose: () => void }) {
             >
               <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000 group-disabled:opacity-25"></div>
               <div className="relative px-6 py-3 bg-black rounded-xl flex items-center justify-center gap-2 font-press-start text-sm text-white group-hover:text-neon-blue transition-all duration-300">
-                {rolling ? 'Rolling...' : 'Roll'}
+                {rolling ? (isVerifiableMode ? 'Creating transaction...' : 'Rolling...') : 'Roll'}
               </div>
             </button>
+
+            {/* Verification Details */}
+            {isVerifiableMode && verificationResult && walletAddress && result && (
+              <div className="mt-6 pt-6 border-t border-white/10">
+                <VerificationDetails 
+                  result={verificationResult}
+                  walletAddress={walletAddress}
+                  customResult={result}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
