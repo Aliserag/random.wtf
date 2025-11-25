@@ -176,8 +176,8 @@ export default function RandomNumber({ isVerifiableMode, walletAddress }: Random
               </ul>
               <div className="pt-4 space-y-2">
                 <p className="text-neon-pink">Contract Address:</p>
-                <a 
-                  href={`https://evm-testnet.flowscan.io/address/${RANDOMNESS_CONTRACT_ADDRESS}`}
+                <a
+                  href={`https://evm.flowscan.io/address/${RANDOMNESS_CONTRACT_ADDRESS}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-neon-blue break-all hover:text-neon-green transition-colors duration-300"

@@ -31,7 +31,7 @@ export default function VerificationDetails({ result, walletAddress, customResul
   };
 
   const openFlowscan = () => {
-    const url = `https://evm-testnet.flowscan.io/tx/${result.txHash}`;
+    const url = `https://evm.flowscan.io/tx/${result.txHash}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

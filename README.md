@@ -48,7 +48,7 @@ A decentralized random number generator using Flow's on-chain VRF (Verifiable Ra
 1. Deploy the smart contract:
 
    ```bash
-   npx hardhat run scripts/deploy.ts --network flow_testnet
+   npx hardhat run scripts/deploy.ts --network flow_mainnet
    ```
 
 1. Run the development server:
@@ -68,7 +68,7 @@ npx hardhat test test/*.test.ts
 
 ## Smart Contract
 
-The `RandomnessWTF` contract is [deployed on Testnet](https://evm-testnet.flowscan.io/address/0x91502a85Ad74ba94499145477dccA19b3E1D6124)
+The `RandomnessWTF` contract is [deployed on Flow Mainnet](https://evm.flowscan.io/address/0x26E9f28c7c3eB5425003959AC4F4279eF373A1c2)
 and uses Flow's VRF capabilities to generate true random numbers. The contract provides two main functions:
 
 - `getRandomNumber(uint256 min, uint256 max)`: Generates a random number within the specified range

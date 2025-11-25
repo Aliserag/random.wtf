@@ -18,8 +18,8 @@ Randomness.WTF is a decentralized random number generator web application built 
 - `npx hardhat compile` - Compile Solidity contracts and generate TypeScript bindings
 - `npx hardhat test` - Run all contract tests
 - `npx hardhat test test/RandomnessWTF.test.ts` - Run specific test file
+- `npx hardhat run scripts/deploy.ts --network flow_mainnet` - Deploy main contract to Flow Mainnet
 - `npx hardhat run scripts/deploy.ts --network flow_testnet` - Deploy main contract to Flow Testnet
-- `npx hardhat run scripts/deploy-witness.ts --network flow_testnet` - Deploy witness contract to Flow Testnet
 - `npx hardhat run scripts/deploy.js --network hardhat` - Deploy to local Hardhat network
 
 ## Architecture
@@ -29,8 +29,8 @@ The `RandomnessWTF.sol` contract inherits from Flow's `CadenceRandomConsumer` to
 - `getRandomNumber(uint64 min, uint64 max)` - Returns random number in range
 - `selectRandomItem(string[] items)` - Returns random item from array
 
-The enhanced contract v2 is deployed at `0x4Fc101E7ecCD7DA2BF88Aa5BAe67b234388aF6FC` on Flow Testnet.
-Legacy v1 contract: `0x91502a85Ad74ba94499145477dccA19b3E1D6124` (archived)
+The enhanced contract v3 is deployed at `0x26E9f28c7c3eB5425003959AC4F4279eF373A1c2` on Flow Mainnet.
+Legacy testnet contracts: `0x0911C1844AD219c941c0D5597460E730A2DF02Ee` (v3), `0x4Fc101E7ecCD7DA2BF88Aa5BAe67b234388aF6FC` (v2), `0x91502a85Ad74ba94499145477dccA19b3E1D6124` (v1)
 
 ### Frontend Architecture
 The application uses Next.js App Router with three main UI modes that support both regular and verifiable modes:
@@ -49,7 +49,7 @@ The application uses Next.js App Router with three main UI modes that support bo
 The `app/utils/contracts.ts` file handles blockchain interaction using ethers.js:
 - Uses read-only JsonRpcProvider for view function calls (no wallet required)
 - Includes MetaMask integration for verifiable randomness transactions
-- Automatically connects to Flow Testnet RPC at `https://testnet.evm.nodes.onflow.org`
+- Automatically connects to Flow Mainnet RPC at `https://mainnet.evm.nodes.onflow.org`
 
 ### Enhanced Contract (v2) Features
 The enhanced contract includes both view and transaction functions:
@@ -78,10 +78,12 @@ Uses Tailwind CSS with custom cyberpunk/neon theme defined in `tailwind.config.t
 
 ## Network Configuration
 
-The project targets Flow EVM Testnet (Chain ID: 545). Hardhat configuration includes:
-- RPC URL: `https://testnet.evm.nodes.onflow.org`
-- Block explorer: `https://evm-testnet.flowscan.io`
+The project targets Flow EVM Mainnet (Chain ID: 747). Hardhat configuration includes:
+- RPC URL: `https://mainnet.evm.nodes.onflow.org`
+- Block explorer: `https://evm.flowscan.io`
 - Gas limit: 500,000
+
+Testnet configuration (Chain ID: 545) is also available for development.
 
 ## Key Dependencies
 

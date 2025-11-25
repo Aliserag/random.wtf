@@ -16,13 +16,20 @@ const config: HardhatUserConfig = {
       gas: 500000,
       chainId: 545
     },
+    flow_mainnet: {
+      url: 'https://mainnet.evm.nodes.onflow.org',
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+      gas: 500000,
+      chainId: 747
+    },
     hardhat: {
       allowUnlimitedContractSize: true,
     },
   },
   etherscan: {
     apiKey: {
-      flowTestnet: "abc"
+      flowTestnet: "abc",
+      flowMainnet: "abc"
     },
     customChains: [
       {
@@ -31,6 +38,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://evm-testnet.flowscan.io/api",
           browserURL: "https://evm-testnet.flowscan.io",
+        }
+      },
+      {
+        network: "flowMainnet",
+        chainId: 747,
+        urls: {
+          apiURL: "https://evm.flowscan.io/api",
+          browserURL: "https://evm.flowscan.io",
         }
       }
     ]

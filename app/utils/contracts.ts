@@ -1,18 +1,18 @@
 import { ethers } from 'ethers';
-import { 
-  RANDOMNESS_CONTRACT_ABI, 
+import {
+  RANDOMNESS_CONTRACT_ABI,
   RANDOMNESS_CONTRACT_ADDRESS
 } from '../config/contracts';
 
 let provider: ethers.Provider | null = null;
 let contract: ethers.Contract | null = null;
 
-const FLOW_TESTNET_RPC = 'https://testnet.evm.nodes.onflow.org';
+const FLOW_MAINNET_RPC = 'https://mainnet.evm.nodes.onflow.org';
 
 // Initialize read-only provider for view functions
 const initializeReadOnlyProvider = () => {
   if (!provider) {
-    provider = new ethers.JsonRpcProvider(FLOW_TESTNET_RPC);
+    provider = new ethers.JsonRpcProvider(FLOW_MAINNET_RPC);
     contract = new ethers.Contract(
       RANDOMNESS_CONTRACT_ADDRESS,
       RANDOMNESS_CONTRACT_ABI,
@@ -34,12 +34,12 @@ export const initializeWalletProvider = async () => {
 
     // Check if we're on the correct network
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (chainId !== '0x221') { // 545 in decimal
+    if (chainId !== '0x2eb') { // 747 in decimal (Flow Mainnet)
       try {
-        // Try to switch to Flow Testnet
+        // Try to switch to Flow Mainnet
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x221' }],
+          params: [{ chainId: '0x2eb' }],
         });
       } catch (switchError: any) {
         // This error code indicates that the chain has not been added to MetaMask
@@ -47,15 +47,15 @@ export const initializeWalletProvider = async () => {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [{
-              chainId: '0x221',
-              chainName: 'Flow Testnet',
+              chainId: '0x2eb',
+              chainName: 'Flow Mainnet',
               nativeCurrency: {
                 name: 'Flow Token',
                 symbol: 'FLOW',
                 decimals: 18,
               },
-              rpcUrls: [FLOW_TESTNET_RPC],
-              blockExplorerUrls: ['https://evm-testnet.flowscan.io'],
+              rpcUrls: [FLOW_MAINNET_RPC],
+              blockExplorerUrls: ['https://evm.flowscan.io'],
             }],
           });
         } else {
