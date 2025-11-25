@@ -2,7 +2,7 @@
 
 A decentralized random number generator using Flow's on-chain VRF (Verifiable Random Function).
 
-## Features
+## Features!
 
 - Generate random numbers within a specified range
 - Select random items from a list
@@ -20,35 +20,41 @@ A decentralized random number generator using Flow's on-chain VRF (Verifiable Ra
 ## Getting Started
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/yourusername/random.wtf.git && cd random.wtf
-    ```
+
+   ```bash
+   git clone https://github.com/yourusername/random.wtf.git && cd random.wtf
+   ```
 
 1. Install dependencies:
-    ```bash
-    npm install
-    ```
+
+   ```bash
+   npm install
+   ```
 
 1. Compile the contracts and generate TypeScript bindings
-    ```bash
-    npm hardhat compile
-    ```
+
+   ```bash
+   npm hardhat compile
+   ```
 
 1. Set up environment variables:
-    ```bash
-    cp .env.example .env
-    ```
-    Edit `.env` and add your Flow EVM private key.
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and add your Flow EVM private key.
 
 1. Deploy the smart contract:
-    ```bash
-    npx hardhat run scripts/deploy.ts --network flow_testnet
-    ```
+
+   ```bash
+   npx hardhat run scripts/deploy.ts --network flow_testnet
+   ```
 
 1. Run the development server:
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
