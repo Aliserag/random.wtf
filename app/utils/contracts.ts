@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
-import { RANDOMNESS_CONTRACT_ABI, RANDOMNESS_CONTRACT_ADDRESS } from '../config/contracts';
+import { 
+  RANDOMNESS_CONTRACT_ABI, 
+  RANDOMNESS_CONTRACT_ADDRESS
+} from '../config/contracts';
 
 let provider: ethers.Provider | null = null;
 let contract: ethers.Contract | null = null;
@@ -63,14 +66,15 @@ export const initializeWalletProvider = async () => {
 
     const walletProvider = new ethers.BrowserProvider(window.ethereum);
     const signer = await walletProvider.getSigner();
-    provider = walletProvider;
-    contract = new ethers.Contract(
+    
+    // Create wallet-specific contract instance without overwriting globals
+    const walletContract = new ethers.Contract(
       RANDOMNESS_CONTRACT_ADDRESS,
       RANDOMNESS_CONTRACT_ABI,
       signer
     );
 
-    return { provider, contract };
+    return { provider: walletProvider, contract: walletContract };
   } catch (error: any) {
     console.error('Failed to initialize provider:', error);
     throw new Error(error.message || 'Failed to connect to wallet');
@@ -78,18 +82,18 @@ export const initializeWalletProvider = async () => {
 };
 
 export const getRandomNumber = async (min: number, max: number): Promise<number> => {
-  // Use read-only provider for view functions
-  if (!contract) {
-    initializeReadOnlyProvider();
-  }
-  if (!contract) throw new Error('Contract not initialized');
-
   try {
+    // Always reinitialize to ensure fresh connection for view functions
+    const { contract: readOnlyContract } = initializeReadOnlyProvider();
+    if (!readOnlyContract) throw new Error('Contract not initialized');
+
     // Convert numbers to BigInt for uint64
     const minBigInt = BigInt(Math.floor(min));
     const maxBigInt = BigInt(Math.floor(max));
     
-    const result = await contract.getRandomNumber(minBigInt, maxBigInt);
+    console.log(`Calling getRandomNumber with min: ${min}, max: ${max} (using read-only provider)`);
+    const result = await readOnlyContract.getRandomNumber(minBigInt, maxBigInt);
+    console.log(`Got result: ${result} (from read-only provider)`);
     return Number(result);
   } catch (error: any) {
     console.error('Error in getRandomNumber:', error);
@@ -98,16 +102,163 @@ export const getRandomNumber = async (min: number, max: number): Promise<number>
 };
 
 export const selectRandomItem = async (items: string[]): Promise<string> => {
-  // Use read-only provider for view functions
-  if (!contract) {
-    initializeReadOnlyProvider();
-  }
-  if (!contract) throw new Error('Contract not initialized');
-
   try {
-    return await contract.selectRandomItem(items);
+    // Always reinitialize to ensure fresh connection for view functions
+    const { contract: readOnlyContract } = initializeReadOnlyProvider();
+    if (!readOnlyContract) throw new Error('Contract not initialized');
+
+    console.log(`Calling selectRandomItem with ${items.length} items`);
+    const result = await readOnlyContract.selectRandomItem(items);
+    console.log(`Selected item: ${result}`);
+    return result;
   } catch (error: any) {
     console.error('Error in selectRandomItem:', error);
     throw new Error(error.message || 'Failed to select random item');
+  }
+};
+
+// Verifiable transaction functions (using enhanced contract v2)
+export const generateVerifiableRandomNumber = async (min: number, max: number): Promise<{
+  result: number;
+  txHash: string;
+  blockNumber: number;
+  generationId: string;
+}> => {
+  try {
+    console.log('Using wallet provider for verifiable random number');
+    const { provider, contract: signerContract } = await initializeWalletProvider();
+    
+    const enhancedContract = new ethers.Contract(
+      RANDOMNESS_CONTRACT_ADDRESS,
+      RANDOMNESS_CONTRACT_ABI,
+      signerContract?.runner || provider
+    );
+
+    const minBigInt = BigInt(Math.floor(min));
+    const maxBigInt = BigInt(Math.floor(max));
+    
+    const tx = await enhancedContract.generateVerifiableRandomNumber(minBigInt, maxBigInt);
+    const receipt = await tx.wait();
+    
+    // Parse the event to get the result
+    const event = receipt.logs.find((log: any) => {
+      try {
+        const parsed = enhancedContract.interface.parseLog(log);
+        return parsed?.name === 'VerifiableRandomNumberGenerated';
+      } catch {
+        return false;
+      }
+    });
+
+    if (!event) {
+      throw new Error('Could not find VerifiableRandomNumberGenerated event');
+    }
+
+    const parsedEvent = enhancedContract.interface.parseLog(event);
+    
+    return {
+      result: Number(parsedEvent?.args.randomNumber),
+      txHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      generationId: parsedEvent?.args.generationId
+    };
+  } catch (error: any) {
+    console.error('Error in generateVerifiableRandomNumber:', error);
+    throw new Error(error.message || 'Failed to generate verifiable random number');
+  }
+};
+
+export const generateVerifiableRandomItem = async (items: string[]): Promise<{
+  result: string;
+  txHash: string;
+  blockNumber: number;
+  selectionId: string;
+}> => {
+  try {
+    const { provider, contract: signerContract } = await initializeWalletProvider();
+    
+    const enhancedContract = new ethers.Contract(
+      RANDOMNESS_CONTRACT_ADDRESS,
+      RANDOMNESS_CONTRACT_ABI,
+      signerContract?.runner || provider
+    );
+
+    const tx = await enhancedContract.generateVerifiableRandomItem(items);
+    const receipt = await tx.wait();
+    
+    // Parse the event to get the result
+    const event = receipt.logs.find((log: any) => {
+      try {
+        const parsed = enhancedContract.interface.parseLog(log);
+        return parsed?.name === 'VerifiableRandomItemSelected';
+      } catch {
+        return false;
+      }
+    });
+
+    if (!event) {
+      throw new Error('Could not find VerifiableRandomItemSelected event');
+    }
+
+    const parsedEvent = enhancedContract.interface.parseLog(event);
+    
+    return {
+      result: parsedEvent?.args.selectedItem,
+      txHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      selectionId: parsedEvent?.args.selectionId
+    };
+  } catch (error: any) {
+    console.error('Error in generateVerifiableRandomItem:', error);
+    throw new Error(error.message || 'Failed to generate verifiable random item');
+  }
+};
+
+// Yolo decision function
+export const makeYoloDecision = async (): Promise<{
+  decision: string;
+  advice: string;
+  txHash: string;
+  blockNumber: number;
+  decisionId: string;
+}> => {
+  try {
+    const { provider, contract: signerContract } = await initializeWalletProvider();
+    
+    const enhancedContract = new ethers.Contract(
+      RANDOMNESS_CONTRACT_ADDRESS,
+      RANDOMNESS_CONTRACT_ABI,
+      signerContract?.runner || provider
+    );
+
+    const tx = await enhancedContract.makeYoloDecision();
+    const receipt = await tx.wait();
+    
+    // Parse the event to get the result
+    const event = receipt.logs.find((log: any) => {
+      try {
+        const parsed = enhancedContract.interface.parseLog(log);
+        return parsed?.name === 'YoloDecisionMade';
+      } catch {
+        return false;
+      }
+    });
+
+    if (!event) {
+      throw new Error('Could not find YoloDecisionMade event');
+    }
+
+    const parsedEvent = enhancedContract.interface.parseLog(event);
+    
+    return {
+      decision: parsedEvent?.args.decision,
+      advice: parsedEvent?.args.advice,
+      txHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      decisionId: parsedEvent?.args.decisionId
+    };
+  } catch (error: any) {
+    console.error('Error in makeYoloDecision:', error);
+    throw new Error(error.message || 'Failed to make Yolo decision');
   }
 }; 

@@ -4,10 +4,18 @@ import React, { useState } from 'react';
 import RandomNumber from './components/RandomNumber';
 import RandomList from './components/RandomList';
 import YoloRoll from './components/YoloRoll';
+import VerifiableMode from './components/VerifiableMode';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('number');
   const [showYolo, setShowYolo] = useState(false);
+  const [isVerifiableMode, setIsVerifiableMode] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  const handleModeChange = (verifiable: boolean, address: string | null) => {
+    setIsVerifiableMode(verifiable);
+    setWalletAddress(address);
+  };
 
   return (
     <main className="min-h-screen bg-black overflow-x-hidden relative">
@@ -15,6 +23,11 @@ export default function Home() {
       <div className="fixed inset-0 bg-black">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neon-purple/20 via-transparent to-transparent animate-pulse"></div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+      </div>
+
+      {/* Verifiable Mode Button - Top Right */}
+      <div className="fixed top-4 right-4 z-20">
+        <VerifiableMode onModeChange={handleModeChange} />
       </div>
 
       {/* Content */}
@@ -25,7 +38,7 @@ export default function Home() {
             <h1 className="font-press-start text-2xl md:text-4xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-blue bg-clip-text text-transparent px-2">
               Randoms.WTF
             </h1>
-            <p className="font-press-start text-neon-blue text-xs md:text-sm px-2">
+            <p className="font-press-start text-neon-blue text-xs md:text-sm px-2 mt-4">
               True Random Generator powered by Flow VRF
             </p>
           </div>
@@ -63,14 +76,30 @@ export default function Home() {
 
           {/* Content */}
           <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-6">
-            {activeTab === 'number' && <RandomNumber />}
-            {activeTab === 'list' && <RandomList />}
+            {activeTab === 'number' && (
+              <RandomNumber 
+                isVerifiableMode={isVerifiableMode}
+                walletAddress={walletAddress}
+              />
+            )}
+            {activeTab === 'list' && (
+              <RandomList 
+                isVerifiableMode={isVerifiableMode}
+                walletAddress={walletAddress}
+              />
+            )}
           </div>
         </div>
       </div>
 
       {/* YOLO Modal */}
-      {showYolo && <YoloRoll onClose={() => setShowYolo(false)} />}
+      {showYolo && (
+        <YoloRoll 
+          onClose={() => setShowYolo(false)}
+          isVerifiableMode={isVerifiableMode}
+          walletAddress={walletAddress}
+        />
+      )}
     </main>
   );
 } 

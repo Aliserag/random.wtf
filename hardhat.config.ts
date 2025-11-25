@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
   networks: {
     flow_testnet: {
       url: 'https://testnet.evm.nodes.onflow.org',
-      accounts: [PRIVATE_KEY],
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       gas: 500000,
       chainId: 545
     },
